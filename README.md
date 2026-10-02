@@ -10,3 +10,7 @@ Adding Components
 
 npx shadcn@latest add https://shadcn-chatbot-kit.vercel.app/r/chat.json -c apps/web
 
+
+Status Checkpoint
+===================
+Completed basic Frontend webpage
