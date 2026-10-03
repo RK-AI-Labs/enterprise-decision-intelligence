@@ -9,6 +9,8 @@ from uuid import UUID
 import psycopg
 from google.adk.tools import ToolContext
 
+from ai_template_python.evidence import register_evidence
+
 _MONTHLY_SPEND_SQL = """
 WITH monthly_spend AS (
     SELECT
@@ -120,8 +122,30 @@ def analyze_supplier_monthly_spend(
                     }
         previous_by_currency[currency] = (month, amount)
 
+    evidence_id = None
+    if monthly:
+        change_note = (
+            f"largest change {largest_change['amount_change']} {largest_change['currency']} "
+            f"in {largest_change['month']}"
+            if largest_change
+            else "no adjacent-month change"
+        )
+        evidence_id = register_evidence(
+            tool_context.state,
+            source_type="database",
+            source_id=supplier_id.strip(),
+            locator=f"purchase_orders:{supplier_id.strip()}:{start}..{end}",
+            citation_label=f"Purchase-order spend {supplier_id.strip()} {start}..{end}",
+            excerpt=(
+                f"{len(monthly)} months, first {monthly[0]['month']} {monthly[0]['spend']}, "
+                f"last {monthly[-1]['month']} {monthly[-1]['spend']}; {change_note}"
+            ),
+            is_synthetic=all(bool(row["is_synthetic"]) for row in monthly),
+        )
+
     return {
         "status": "success",
+        "evidence_id": evidence_id,
         "supplier_id": supplier_id.strip(),
         "date_range": {"start": start.isoformat(), "end": end.isoformat()},
         "monthly_spend": monthly,

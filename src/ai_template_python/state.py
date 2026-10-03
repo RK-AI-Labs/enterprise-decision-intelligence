@@ -1,6 +1,6 @@
 """Versioned, JSON-serializable working state for one investigation."""
 
-from typing import Literal, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 
 class TaskState(TypedDict):
@@ -18,6 +18,9 @@ class EvidencePointer(TypedDict):
     locator: str
     observed_at: str
     content_sha256: str | None
+    citation_label: NotRequired[str]
+    excerpt: NotRequired[str]
+    is_synthetic: NotRequired[bool]
 
 
 class Finding(TypedDict):
